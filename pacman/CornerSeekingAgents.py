@@ -85,8 +85,7 @@ class CornerSeekingAgent(Agent):
 					current_best_node = node
 			return current_best_node
 			
-			
-			
+					
 
 
     def getAction(self, state):
@@ -123,19 +122,105 @@ class CornerSeekingAgent(Agent):
         pacman = api.whereAmI(state)
         print pacman
         
+		## TODO: Rewrite the action of pacman when it sees ghosts
+        ghost_list = api.ghosts(state)
+        print("ghost_list"+str(ghost_list))
+        if len(ghost_list) != 0:
+            nearest_ghost = self.find_nearest(pacman,ghost_list)
+            if pacman[0] < nearest_ghost[0]:
+			    if Directions.WEST in legal:
+				    self.last = Directions.WEST
+				    return api.makeMove(Directions.WEST, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.WEST and (Directions.NORTH in legal or Directions.SOUTH in legal):
+				    next_list = list(set(legal) - {Directions.WEST, Directions.EAST})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+            elif pacman[0] > nearest_ghost[0]:
+			    if Directions.EAST in legal:
+				    self.last = Directions.EAST
+				    return api.makeMove(Directions.EAST, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.WEST and (Directions.NORTH in legal or Directions.SOUTH in legal):
+				    next_list = list(set(legal) - {Directions.WEST, Directions.EAST})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+            elif pacman[1] < nearest_ghost[1]:
+			    if Directions.SOUTH in legal:
+				    self.last = Directions.SOUTH
+				    return api.makeMove(Directions.SOUTH, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.NORTH and (Directions.EAST in legal or Directions.WEST in legal):
+				    next_list = list(set(legal) - {Directions.SOUTH, Directions.NORTH})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+            else:
+			    if Directions.NORTH in legal:
+				    self.last = Directions.NORTH
+				    return api.makeMove(Directions.NORTH, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.SOUTH and (Directions.EAST in legal or Directions.WEST in legal):
+				    next_list = list(set(legal) - {Directions.SOUTH, Directions.NORTH})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+
+		
+		
+		# TODO: REFACTOR the code to stop letting the pacman vibrating
+		# TODO: Provide a mechanism to avoid the ghost
         food_list = api.food(state)
         nearest_food = self.find_nearest(pacman,food_list)
-        if pacman[0] > nearest_food:
-			if Direction.WEST in legal:
-				self.last = Directions.WEST
-				return api.makeMove(Directions.WEST, legal)
-			# Prevent pacman vibrating
-			elif Directions.NORTH in legal or Directions.SOUTH in legal:
-				next_list = {Directions.NORTH, Directions.SOUTH}
-				pick = random.choice(next_list)
-				self.last = pick
-				return api.makeMove(last,legal)
+        print "nearest_food is"+str(nearest_food)
+        if nearest_food != (-1,-1):
+            if pacman[0] > nearest_food[0]:
+			    if Directions.WEST in legal:
+				    self.last = Directions.WEST
+				    return api.makeMove(Directions.WEST, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.WEST and (Directions.NORTH in legal or Directions.SOUTH in legal):
+				    next_list = list(set(legal) - {Directions.WEST, Directions.EAST})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+            elif pacman[0] < nearest_food[0]:
+			    if Directions.EAST in legal:
+				    self.last = Directions.EAST
+				    return api.makeMove(Directions.EAST, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.WEST and (Directions.NORTH in legal or Directions.SOUTH in legal):
+				    next_list = list(set(legal) - {Directions.WEST, Directions.EAST})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+            elif pacman[1] > nearest_food[1]:
+			    if Directions.SOUTH in legal:
+				    self.last = Directions.SOUTH
+				    return api.makeMove(Directions.SOUTH, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.NORTH and (Directions.EAST in legal or Directions.WEST in legal):
+				    next_list = list(set(legal) - {Directions.SOUTH, Directions.NORTH})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+            else:
+			    if Directions.NORTH in legal:
+				    self.last = Directions.NORTH
+				    return api.makeMove(Directions.NORTH, legal)
+			    # Prevent pacman vibrating
+			    elif self.last == Directions.SOUTH and (Directions.EAST in legal or Directions.WEST in legal):
+				    next_list = list(set(legal) - {Directions.SOUTH, Directions.NORTH})
+				    pick = random.choice(next_list)
+				    self.last = pick
+				    return api.makeMove(pick,legal)
+			
+			
 				
+		
+		
 				
 				
 
@@ -169,7 +254,7 @@ class CornerSeekingAgent(Agent):
         #
 
         # Move towards the top left corner
-        """
+        
         # Check we aren't there:
         if pacman[0] == minX + 1:
            if pacman[1] == maxY - 1:
@@ -217,12 +302,10 @@ class CornerSeekingAgent(Agent):
         if pacman[0] == maxX - 1:
            if pacman[1] == minY + 1:
                 self.BR = True
-                return api.makeMove(Directions.STOP, legal)
+                return api.makeMove(random.choice(legal), legal)
            else:
                print "Nearly there"
                return api.makeMove(Directions.SOUTH, legal)
+        
 
-        print "Not doing anything!"
-        """
-
-        return api.makeMove(Directions.STOP, legal)
+        return api.makeMove(random.choice(legal), legal)
