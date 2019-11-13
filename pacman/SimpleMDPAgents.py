@@ -198,10 +198,12 @@ class SimpleMDPAgent(Agent):
 
 
     def calculateUtility(self,state):
-        discount_factor = 0.8
-        probility = 0.8
-        maximum_change = 0.000001
+        #TODO: Find a good discount_factor and maximum_change value
+        discount_factor = 0.9
+        #probility = 0.8
+        maximum_change = 0.001
         food_reward = 1
+        ghost_reward = -1000
         #Decide reward
         uti_need_change = True
         while uti_need_change == True:
@@ -215,6 +217,16 @@ class SimpleMDPAgent(Agent):
 
                     if self.map.getValue(i,j) == '*':
                         current_reward = 1
+
+
+                    #TODO: ADD Ghost State & Scared
+                    #ghostStates_list = api.ghostStates(state)
+                    ghost_list = api.ghosts(state)
+                    if (i,j) in ghost_list:
+                        #print(ghost_list)
+
+                        current_reward = ghost_reward
+
 
                     #There is no need to update the utility if it's a wall
                     if self.map.getValue(i,j) != '%':
