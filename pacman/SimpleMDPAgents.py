@@ -97,7 +97,6 @@ class Grid:
             print
         # A line after the grid
         print
-
     # Set and get the values of specific elements in the grid.
     # Here x and y are indices.
     def setValue(self, x, y, value):
@@ -201,19 +200,21 @@ class SimpleMDPAgent(Agent):
         #TODO: Find a good discount_factor and maximum_change value
         discount_factor = 0.9
         #probility = 0.8
-        maximum_change = 0.001
-        food_reward = 1
-        ghost_reward = -1000
+        maximum_change = 0.01
+        new_utility_values = []
+        food_reward = 10
+        ghost_reward = -500
         #Decide reward
         uti_need_change = True
         while uti_need_change == True:
+            new_utility_values = []
             for i in range(self.map.getWidth()):
                 for j in range(self.map.getHeight()):
                     #Calculation
                     current_utility = self.map.getUtility(i,j)
-                    current_reward = -0.5
+                    current_reward = -2   #Good!
                     #current_max = -999
-                    # NOTICE: If food is eaten, the utitlity should be updated
+                    # NOTIutility_changedCE: If food is eaten, the utitlity should be updated
 
                     if self.map.getValue(i,j) == '*':
                         current_reward = 1
@@ -221,9 +222,11 @@ class SimpleMDPAgent(Agent):
 
                     #TODO: ADD Ghost State & Scared
                     #ghostStates_list = api.ghostStates(state)
+
                     ghost_list = api.ghosts(state)
+                    #print(ghost_list)
                     if (i,j) in ghost_list:
-                        #print(ghost_list)
+                        #print("haha")
 
                         current_reward = ghost_reward
 
@@ -271,8 +274,11 @@ class SimpleMDPAgent(Agent):
                         self.map.setUtility(i,j,new_utility)
 
                         utility_changed = abs(current_utility - new_utility)
-                        if utility_changed < maximum_change:
-                            uti_need_change = False
+                        new_utility_values.append(utility_changed)
+
+
+            if max(new_utility_values) < maximum_change:
+                uti_need_change = False
 
 
 
@@ -290,7 +296,7 @@ class SimpleMDPAgent(Agent):
     # For now I just move randomly, but I display the map to show my progress
     def getAction(self, state):
         self.updateFoodInMap(state)
-        self.map.prettyDisplay()
+        #self.map.prettyDisplay()
         self.calculateUtility(state)
 
         # Get the actions we can try, and remove "STOP" if that is one of them.
