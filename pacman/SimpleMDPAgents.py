@@ -198,12 +198,12 @@ class SimpleMDPAgent(Agent):
 
     def calculateUtility(self,state):
         #TODO: Find a good discount_factor and maximum_change value
-        discount_factor = 0.9
+        discount_factor = 0.6
         #probility = 0.8
-        maximum_change = 0.01
+        maximum_change = 1
         new_utility_values = []
-        food_reward = 10
-        ghost_reward = -500
+        food_reward = 5
+        ghost_reward = -100
         #Decide reward
         uti_need_change = True
         while uti_need_change == True:
@@ -275,7 +275,6 @@ class SimpleMDPAgent(Agent):
 
                         utility_changed = abs(current_utility - new_utility)
                         new_utility_values.append(utility_changed)
-
 
             if max(new_utility_values) < maximum_change:
                 uti_need_change = False
