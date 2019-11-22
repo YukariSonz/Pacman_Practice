@@ -136,9 +136,9 @@ class MDPAgent(Agent):
 
     def calculateUtility(self,state):
         #TODO: Find a good discount_factor and maximum_change value
-        discount_factor = 0.8
+        discount_factor = 0.7
         #probility = 0.8
-        maximum_change = 0.01
+        maximum_change = 0.1
         new_utility_values = []
         food_reward = 5
         ghost_reward = -100
@@ -148,10 +148,9 @@ class MDPAgent(Agent):
             new_utility_values = []
             for i in range(self.map.getWidth()):
                 for j in range(self.map.getHeight()):
-                    #Calculation
+                    #Utility calculation by using value iteration with bellman equation
                     current_utility = self.map.getUtility(i,j)
                     current_reward = -2   #Good!
-                    #current_max = -999
                     # NOTICE: If food is eaten, the utitlity should be updated
 
                     if self.map.getValue(i,j) == '*':
@@ -159,13 +158,22 @@ class MDPAgent(Agent):
 
 
                     #TODO: ADD Ghost State & Scared
-                    #ghostStates_list = api.ghostStates(state)
+                    ghostStates_list = api.ghostStatesWithTimes(state)
 
                     ghost_list = api.ghosts(state)
                     #print(ghost_list)
-                    if (i,j) in ghost_list:
 
-                        current_reward = ghost_reward
+                    #Notice: if the ghost is scared, its speed will reduce 
+                    #Notice: The time is reduced from 36 to 0
+                    if (i,j) in ghost_list:
+                        for ghost, time in ghostStates_list:
+                            if ghost == (i,j):
+                                if time > 6:
+                                    current_reward = 0
+                                else:
+                                    current_reward = ghost_reward
+                                break
+                        #current_reward = ghost_reward
 
 
                     #There is no need to update the utility if it's a wall
