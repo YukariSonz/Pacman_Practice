@@ -35,6 +35,7 @@ import random
 import game
 import util
 
+# The class grid is modified from mapAgent on KEATS 
 class Grid:
 
     def __init__(self, width, height):
@@ -134,9 +135,11 @@ class MDPAgent(Agent):
             self.map.setValue(food[i][0], food[i][1], '*')
 
 
+    #Calculate the utility 
     def calculateUtility(self,state):
-        #TODO: Find a good discount_factor and maximum_change value
-        discount_factor = 0.7
+        #TODO: Find a good discount_factor and maximum_change value providing a fast convergence speed & high accuracy
+        #TODO: Find the approximation for the relationship of these values
+        discount_factor = 0.6
         #probility = 0.8
         maximum_change = 0.1
         new_utility_values = []
@@ -150,30 +153,30 @@ class MDPAgent(Agent):
                 for j in range(self.map.getHeight()):
                     #Utility calculation by using value iteration with bellman equation
                     current_utility = self.map.getUtility(i,j)
-                    current_reward = -2   #Good!
-                    # NOTICE: If food is eaten, the utitlity should be updated
+                    current_reward = -2  
 
+                    #If this grid contains a food, change the reward to 5
                     if self.map.getValue(i,j) == '*':
-                        current_reward = 1
+                        current_reward = food_reward
 
 
-                    #TODO: ADD Ghost State & Scared
                     ghostStates_list = api.ghostStatesWithTimes(state)
 
                     ghost_list = api.ghosts(state)
-                    #print(ghost_list)
 
                     #Notice: if the ghost is scared, its speed will reduce 
                     #Notice: The time is reduced from 36 to 0
                     if (i,j) in ghost_list:
                         for ghost, time in ghostStates_list:
                             if ghost == (i,j):
-                                if time > 6:
+                                #A relative "greedy" approach
+                                if time > 10:
                                     current_reward = 0
                                 else:
                                     current_reward = ghost_reward
                                 break
                         #current_reward = ghost_reward
+                    
 
 
                     #There is no need to update the utility if it's a wall
@@ -199,7 +202,7 @@ class MDPAgent(Agent):
                         for dire in dires:
                             current_utilities_list.append(self.map.getUtility(dire[0],dire[1])) #It stores the effect by applying the action from current state (order: east west north south)
 
-                        #calculate the utilities
+                        #calculate the utilities, the number 0.8 is given by the document
                         north_utility = 0.8 * current_utilities_list[2] + 0.1 * current_utilities_list[0] + 0.1 * current_utilities_list[1]
                         utilities_list.append(north_utility)
 
@@ -245,9 +248,11 @@ class MDPAgent(Agent):
         location = api.whereAmI(state)
         location_x = location[0]
         location_y = location[1]
-
+        
+        # Find the best policy from the utilities calculated 
         for option in legal:
 
+            #In these if statements , it considered if the pacman will hit the wall or not 
             if option == Directions.EAST:
                 north_ok = Directions.NORTH in legal
                 south_ok  = Directions.SOUTH in legal
@@ -300,6 +305,6 @@ class MDPAgent(Agent):
                     south_utility = 0.8 * self.map.getUtility(location_x, location_y - 1) + 0.2 * self.map.getUtility(location_x, location_y)
                 available_options_utilities.append((south_utility,Directions.SOUTH))
 
-
+        #Find the best policy
         decision = max(available_options_utilities, key=lambda op: op[0])
         return api.makeMove(decision[1], legal)
