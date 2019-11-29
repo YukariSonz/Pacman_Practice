@@ -54,7 +54,7 @@ class Grid:
         for i in range(self.height):
             row_utility=[]
             for j in range(self.width):
-                row_utility.append(0.5) # Init Utility
+                row_utility.append(0) # Init Utility
             subgrid_utility.append(row_utility)
         self.utilities = subgrid_utility
 
@@ -137,23 +137,21 @@ class MDPAgent(Agent):
 
     #Calculate the utility 
     def calculateUtility(self,state):
-        #TODO: Find a good discount_factor and maximum_change value providing a fast convergence speed & high accuracy
-        #TODO: Find the approximation for the relationship of these values
         discount_factor = 0.6
-        #probility = 0.8
-        maximum_change = 0.1
         new_utility_values = []
-        food_reward = 5
-        ghost_reward = -100
-        #Decide reward
+        food_reward = 2
+        ghost_reward = -500
+        maximum_change = 0.00001
         uti_need_change = True
+        
+        #Update the utility
         while uti_need_change == True:
             new_utility_values = []
             for i in range(self.map.getWidth()):
                 for j in range(self.map.getHeight()):
                     #Utility calculation by using value iteration with bellman equation
                     current_utility = self.map.getUtility(i,j)
-                    current_reward = -2  
+                    current_reward = 0  # The reward value if this position have no ghost and no food, 
 
                     #If this grid contains a food, change the reward to 5
                     if self.map.getValue(i,j) == '*':
@@ -170,37 +168,40 @@ class MDPAgent(Agent):
                         for ghost, time in ghostStates_list:
                             if ghost == (i,j):
                                 #A relative "greedy" approach
-                                if time > 10:
+                                if time >= 12:
                                     current_reward = 0
                                 else:
                                     current_reward = ghost_reward
-                                break
-                        #current_reward = ghost_reward
                     
 
 
                     #There is no need to update the utility if it's a wall
                     if self.map.getValue(i,j) != '%':
+
+                        #Find the effect by taking action a from current state
                         east = (i+1,j)
                         west = (i-1,j)
                         north = (i,j+1)
                         south = (i,j-1)
+                        
+
 
 
                         dires = [east,west,north,south]
 
                         init_index = 0
                         for dire in dires:
+                            #If the result by taking this action will hit the wall, the utility value for this position should be the utility of current state
                             if self.map.getValue(dire[0], dire[1]) == '%':      
-                                dires[init_index] = (i,j)  # The case that hit the wall
+                                dires[init_index] = (i,j)  
                             init_index += 1
 
                         utilities_list = []
-
                         current_utilities_list = []
-
+                        
+                        #Get the utility of the effects state(order: east, west, north, south)
                         for dire in dires:
-                            current_utilities_list.append(self.map.getUtility(dire[0],dire[1])) #It stores the effect by applying the action from current state (order: east west north south)
+                            current_utilities_list.append(self.map.getUtility(dire[0],dire[1])) 
 
                         #calculate the utilities, the number 0.8 is given by the document
                         north_utility = 0.8 * current_utilities_list[2] + 0.1 * current_utilities_list[0] + 0.1 * current_utilities_list[1]
@@ -215,9 +216,8 @@ class MDPAgent(Agent):
                         east_utility = 0.8 * current_utilities_list[0] + 0.1 * current_utilities_list[2] + 0.1 * current_utilities_list[3]
                         utilities_list.append(east_utility)
 
-                        max_utility = max(utilities_list)   #Find the max value of them : It's NP!
-
-                        new_utility = current_reward + discount_factor * max_utility    # Bellman function
+                        max_utility = max(utilities_list)   #Find the max value of them 
+                        new_utility = current_reward + (discount_factor * max_utility)    # Value iteration update function
 
                         self.map.setUtility(i,j,new_utility)    #Set the new utility to this location
 
@@ -251,8 +251,8 @@ class MDPAgent(Agent):
         
         # Find the best policy from the utilities calculated 
         for option in legal:
-
             #In these if statements , it considered if the pacman will hit the wall or not 
+            #In each options, it will append the pair (utility_value, Action) so that the agent will know which action has which utility
             if option == Directions.EAST:
                 north_ok = Directions.NORTH in legal
                 south_ok  = Directions.SOUTH in legal
@@ -304,6 +304,7 @@ class MDPAgent(Agent):
                 else:
                     south_utility = 0.8 * self.map.getUtility(location_x, location_y - 1) + 0.2 * self.map.getUtility(location_x, location_y)
                 available_options_utilities.append((south_utility,Directions.SOUTH))
+        
 
         #Find the best policy
         decision = max(available_options_utilities, key=lambda op: op[0])
